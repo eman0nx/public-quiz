@@ -8,9 +8,19 @@ Developers can [test locally or remotely](#testing) and should evaluate [securit
 
 ## Setup
 
-Read this on [your new fork][FORK_THIS], set up [GitHub Pages](../../settings/pages) from "actions", and publish a [pre-release](../../releases/new).
+Read this on [your new fork][FORK_THIS], and [enable GitHub Actions](../../actions).
 
-<img width="700" alt="Set GitHub Pages from Actions and Publish Prerelease" src="https://user-images.githubusercontent.com/75504552/216326060-d31c0dab-0b16-4c4a-a8f6-9b21b4adcea3.png">
+![enable actions](https://user-images.githubusercontent.com/75504552/219168117-532b555a-c1ea-4745-92fc-a4ffbf4ada8a.png)
+
+Then, set up [GitHub Pages](../../settings/pages) from "actions" and set your ["github-pages" environment](../../settings/environments) to run on any branch or tag.
+
+![ok2](https://user-images.githubusercontent.com/75504552/219478867-95cbae17-8888-4348-9fbe-dec7a85e6726.png)
+
+
+Finally, publish a [pre-release](../../releases/new) (any tag name you create is fine).
+
+![ok1](https://user-images.githubusercontent.com/75504552/219478759-32a4a252-ab3b-4530-bc6a-e561bf933d64.png)
+
 
 ### Register
 
@@ -68,14 +78,15 @@ pnpm install -g node-gyp
 CXX=gcc pnpm install
 ```
 
-Run `pnpm dev`, then open `localhost:8000` in a browser.
+#### Automated Testing
 
-To re-install the environment:
-  - Delete [your old development app](https://github.com/settings/apps)
-  - Exit (`ctrl-C`) `pnpm dev` and run `pnpm dev clean`
+Run `pnpm test:config` to cache your GitHub username and password.
+Then run `pnpm test` to run all client-side tests.
+Run `pnpm test:ideas` to start making new tests.
 
-To update expired installation tokens:
-  - `bash develop.bash UPDATE`
+#### Manual Testing
+
+Run `pnpm dev clean`, then open `localhost:8000` in a browser. To clean up after manual tests, delete [your old development app](https://github.com/settings/apps) and remove `.env`. Ensure `pnpm dev clean` or `pnpm dev` is running to resume testing. To update expired local installation tokens, run `bash develop.bash UPDATE`.
 
 [HELP_COLLAB]: https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-access-to-your-personal-repositories/inviting-collaborators-to-a-personal-repository
 [HELP_SECURE]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure

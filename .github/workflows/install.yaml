@@ -5,8 +5,14 @@ on:
       tag:
         required: true
         type: string
+      url:
+        required: true
+        type: string
+      deployment:
+        required: true
+        type: string
 env:
-  DEPLOYMENT: PRODUCTION-LOGIN
+  DEPLOYMENT: "${{ inputs.deployment }}"
   REMOTE: ${{ github.repository }}
   ROOT: "https://api.github.com"
   API: "X-GitHub-Api-Version: 2022-11-28"
@@ -18,7 +24,7 @@ permissions:
 jobs:
   setup:
     environment:
-      name: PRODUCTION-LOGIN
+      name: ${{ inputs.deployment }}
     runs-on: ubuntu-latest
     if: inputs.tag != ''
     outputs:
@@ -27,6 +33,24 @@ jobs:
       index: ${{ steps.index.outputs.index }}
       release: ${{ steps.index.outputs.release }}
     steps:
+      - id: body
+        run: |
+          echo "body=$URL" >> $GITHUB_OUTPUT
+        env:
+          URL: ${{ inputs.url }}
+      - name: Release with pages URL
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          body: |
+            noop#noop=noop
+
+            ${{ steps.body.outputs.body }}
+          tag_name: ${{ inputs.tag }}
+          name: ${{ inputs.tag }}
+          prerelease: false
+          draft: false
       - name: Fetching executable
         id: index
         run: |
@@ -49,7 +73,7 @@ jobs:
     needs:
       - setup
     environment:
-      name: PRODUCTION-LOGIN
+      name: ${{ inputs.deployment }}
     runs-on: ubuntu-latest
     steps:
       - name: Publishing Opaque codes

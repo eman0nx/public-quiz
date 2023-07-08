@@ -1,12 +1,16 @@
 import { OPS, OP } from "opaque-low-io";
 import { toSockClient } from "sock-secret";
 
+const SINCE = "last-modified"
+
 async function toOpaqueSock(opts, workflow) {
   const { preface, delay, input, output } = opts;
   if ("key" in output) {
     output.workflow = workflow;
   }
+  const since = sessionStorage.getItem(SINCE);
   const sock_in = { preface, delay, input, output };
+  if (since) sock_in.persist = { [SINCE]: since };
   const Sock = await toSockClient(sock_in);
   if (Sock === null) {
     throw new Error('Unable to make socket.');
@@ -29,10 +33,15 @@ async function clientRegister(opts) {
 }
 
 async function clientVerify(opts) {
-  const { reg_out, times } = opts;
+  const { reg_out, times, register } = opts;
   const { Sock, Opaque } = await toOpaqueSock(opts, "call-login-close");
   const c_out = await Opaque.clientStep(reg_out, times, "op");
-  Sock.quit();
+  // Await for login-close to finish by checking mail
+  if ( register === true ) await Sock.get("mail", "session");
+  const persist = Sock.quit();
+  if (SINCE in persist) {
+    sessionStorage.setItem(SINCE, persist[SINCE]);
+  }
   return c_out.token;
 }
 
@@ -55,11 +64,9 @@ const readFile = async (opts) => {
 }
 
 const writeFile = async (opts) => {
-  const { root, fname, text } = opts;
-  const toF = root.getFileHandle.bind(root);
-  const f = await toF(fname, { create: true });
-  await writeText(f, text);
-  return f;
+  const method = 'POST';
+  const { fname, text: body } = opts;
+  await fetch('/'+fname, { body, method });
 }
 
 const toGitHubDelay = (local) => {

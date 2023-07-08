@@ -2,17 +2,16 @@ const toRows = (s) => {
   return s.split('\n').map(r => r.split(','));
 }
 
-const toEnv = async () => {
+const toEnv = async (root) => {
   const valid = {
     REMOTE: "remote",
     VERSION: "version",
-    DEPLOYMENT: "env",
-    DEV_PATH_ROOT: "dev_root"
+    DEPLOYMENT: "env"
   };
   const modifiers = {
     REMOTE: (s) => s.split('/')
   }
-  const source = '/environment.csv';
+  const source = `${root}environment.csv`;
   const response = await fetch(source);
   const rows = toRows(await response.text());
   const filtered = rows.filter(([k, v]) => {

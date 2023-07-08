@@ -3,37 +3,26 @@ trap "exit" INT
 SET_SESSION=$(cat .env | egrep "^ROOT__SESSION")
 SESSION=$(sed -r "s@.*=.(.+).@\1@" <<< $SET_SESSION)
 GIT_URL=$(git config --get remote.origin.url)
+#GIT_URL=$(git config --get remote.john.url) # TODO
 REMOTE=$(sed -r "s@.*[:/](.+/.+)@\1@" <<< $GIT_URL)
-DEPLOYMENT="DEVELOPMENT-TEST"
+RANDO=$(openssl rand -hex 3)
+DEPLOYMENT="INT-TEST-$RANDO"
 export DEPLOYMENT
 export REMOTE
-SERVER_URL="\"localhost:8000\""
-SERVER_CMD="\"npx http-server client\""
-WIKI_IN="./tmp-dev"
-CSV="./client/environment.csv"
 SECRET_TXT="./secret.txt"
 CLIENT_IN="./client/pub.txt"
-CLIENT_OUT=$WIKI_IN/msg.txt
-mkdir -p $WIKI_IN
+CLIENT_OUT="./tmp-dev/msg.txt"
+CSV="./client/environment.csv"
+mkdir -p "./tmp-dev"
+echo "" > $SECRET_TXT
 echo "REMOTE,$REMOTE" > $CSV
 echo "DEPLOYMENT,$DEPLOYMENT" >> $CSV
-echo "DEV_PATH_ROOT,$(pwd)" >> $CSV
-echo "" > $SECRET_TXT
 
 if [ "$1" == "UPDATE" ]; then
   PUB_CTLI=$(head -n 1 $CLIENT_IN)
   pnpm develop UPDATE TOKEN $PUB_CTLI
   exit 0
 fi
-
-waiter () {
-  echo "Awaiting empty $1..."
-  until [ -s $1 ]; do
-    echo "..."
-    sleep 1
-  done
-  echo $'... ready!\n'
-}
 
 enter () {
   pnpm develop DEV INBOX 
@@ -59,11 +48,10 @@ if [ ! -z $SESSION ]; then
 fi
 echo "" > .env
 echo "" > $CLIENT_IN
+echo "" > $CLIENT_OUT
 
 pnpm develop SETUP PUB OPAQUE 
 echo $(head -n 1 $SECRET_TXT) > $CLIENT_IN
-
-waiter $CLIENT_OUT
 
 pnpm develop SETUP APP $(tail -n 1 $SECRET_TXT)
 echo $(head -n 1 $SECRET_TXT) > $CLIENT_IN
